@@ -14,7 +14,8 @@ gi.require_version("GLib", "2.0")
 from gi.repository import Gio, GLib  # noqa: E402
 
 from . import config
-from .state import Override, effective, load_override, save_override, state_path
+from .state import (Override, effective, load_override, save_override,
+                    schedule_reset_allowed, state_path)
 
 BUS_NAME = "org.spakoi.Spakoi"
 OBJECT_PATH = "/org/spakoi/Spakoi"
@@ -35,15 +36,6 @@ INTROSPECTION = """
   <signal name="StateChanged"><arg name="state" type="s"/><arg name="reason" type="s"/></signal>
 </interface></node>
 """
-
-
-def schedule_reset_allowed(data: dict, current: dict, now: datetime) -> bool:
-    """Return whether clearing a manual override preserves strict-mode hiding."""
-    if data.get("general", {}).get("mode") != "strict":
-        return True
-    if current.get("state") != "HIDDEN":
-        return True
-    return effective(data, None, now).get("state") == "HIDDEN"
 
 
 class Service:

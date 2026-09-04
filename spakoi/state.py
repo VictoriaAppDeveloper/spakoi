@@ -89,3 +89,12 @@ def effective(config: dict, override: Override | None, now: datetime) -> dict:
         "next_transition": next_transition.isoformat() if next_transition else None,
         "mode": mode,
     }
+
+
+def schedule_reset_allowed(data: dict, current: dict, now: datetime) -> bool:
+    """Return whether clearing a manual override preserves strict-mode hiding."""
+    if data.get("general", {}).get("mode") != "strict":
+        return True
+    if current.get("state") != "HIDDEN":
+        return True
+    return effective(data, None, now).get("state") == "HIDDEN"

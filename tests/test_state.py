@@ -4,8 +4,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from spakoi.state import Override, effective, load_override
-from spakoi.daemon import schedule_reset_allowed
+from spakoi.state import Override, effective, load_override, schedule_reset_allowed
 
 
 class StateTests(unittest.TestCase):
