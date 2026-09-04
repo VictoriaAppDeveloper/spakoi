@@ -46,9 +46,12 @@ class Extension {
     constructor() {
         this._hidden = false;
         this._original = new Map();
+        this._actorSignals = new Map();
         this._signals = [];
         this._clockSignals = new Map();
+        this._idleIds = new Set();
         this._retryId = 0;
+        this._enabled = false;
         this._strict = this._readStrictPolicy();
     }
 
@@ -71,6 +74,7 @@ class Extension {
     }
 
     enable() {
+        this._enabled = true;
         this._patchClockCreation();
         this._connectClient();
         this._signals.push([Main.sessionMode,
@@ -78,11 +82,26 @@ class Extension {
         this._signals.push([Main.screenShield,
             Main.screenShield.connect('active-changed', () => {
                 // GNOME 43 creates _dialog lazily while locking the screen.
-                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                    this._apply();
+                const id = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    this._idleIds.delete(id);
+                    if (this._enabled)
+                        this._apply();
                     return GLib.SOURCE_REMOVE;
                 });
+                this._idleIds.add(id);
             })]);
+    }
+
+    _rememberActor(actor) {
+        if (this._original.has(actor))
+            return;
+        this._original.set(actor, actor.visible);
+        const id = actor.connect('destroy', destroyed => {
+            this._original.delete(destroyed);
+            this._actorSignals.delete(destroyed);
+            this._clockSignals.delete(destroyed);
+        });
+        this._actorSignals.set(actor, id);
     }
 
     _patchClockCreation() {
@@ -93,13 +112,12 @@ class Extension {
         UnlockDialog.Clock.prototype._init = function (...args) {
             controller._originalClockInit.apply(this, args);
             // Store the pre-Spakoi state before hiding at creation time.
-            controller._original.set(this, this.visible);
+            controller._rememberActor(this);
             const signal = this.connect('notify::visible', actor => {
                 if (controller._hidden && actor.visible)
                     actor.hide();
             });
             controller._clockSignals.set(this, signal);
-            this.connect('destroy', actor => controller._clockSignals.delete(actor));
             if (controller._hidden)
                 this.hide();
         };
@@ -110,6 +128,8 @@ class Extension {
             this._proxy.disconnectSignal(this._signal);
         this._proxy = new Proxy(Gio.DBus.session, BUS_NAME, OBJECT_PATH,
             (proxy, error) => {
+                if (!this._enabled)
+                    return;
                 if (error) {
                     this._unavailable();
                     return;
@@ -124,6 +144,8 @@ class Extension {
                 this._indicator = new Indicator();
                 Main.panel.addToStatusArea('spakoi', this._indicator);
                 proxy.GetStatusRemote((result, callError) => {
+                    if (!this._enabled)
+                        return;
                     if (callError)
                         this._unavailable();
                     else {
@@ -148,6 +170,8 @@ class Extension {
     }
 
     _unavailable() {
+        if (!this._enabled)
+            return;
         if (this._strict) {
             this._hidden = true;
             this._apply();
@@ -175,13 +199,13 @@ class Extension {
 
     _apply() {
         for (const actor of this._actors()) {
-            if (!this._original.has(actor))
-                this._original.set(actor, actor.visible);
+            this._rememberActor(actor);
             actor.visible = this._hidden ? false : this._original.get(actor);
         }
     }
 
     disable() {
+        this._enabled = false;
         if (this._indicator) {
             this._indicator.destroy();
             this._indicator = null;
@@ -205,6 +229,9 @@ class Extension {
         if (this._retryId)
             GLib.source_remove(this._retryId);
         this._retryId = 0;
+        for (const id of this._idleIds)
+            GLib.source_remove(id);
+        this._idleIds.clear();
         for (const [object, id] of this._signals)
             object.disconnect(id);
         this._signals = [];
@@ -215,6 +242,14 @@ class Extension {
                 // Actor may have been destroyed during a session-mode change.
             }
         }
+        for (const [actor, id] of this._actorSignals) {
+            try {
+                actor.disconnect(id);
+            } catch (error) {
+                // Actor may have been destroyed during a session-mode change.
+            }
+        }
+        this._actorSignals.clear();
         this._original.clear();
     }
 }

@@ -15,11 +15,15 @@ function validState(state) {
 
 export class StateClient {
     constructor(onState, onUnavailable) {
+        this._destroyed = false;
+        this._signal = 0;
         this._proxy = new Proxy(
             Gio.DBus.session,
             'org.spakoi.Spakoi',
             '/org/spakoi/Spakoi',
             (proxy, error) => {
+                if (this._destroyed)
+                    return;
                 if (error) {
                     onUnavailable();
                     return;
@@ -31,6 +35,8 @@ export class StateClient {
                         onUnavailable();
                 });
                 proxy.GetStatusRemote((result, callError) => {
+                    if (this._destroyed)
+                        return;
                     if (callError) {
                         onUnavailable();
                         return;
@@ -48,8 +54,10 @@ export class StateClient {
     }
 
     destroy() {
-        if (this._signal)
+        this._destroyed = true;
+        if (this._signal && this._proxy)
             this._proxy.disconnectSignal(this._signal);
+        this._signal = 0;
         this._proxy = null;
     }
 }

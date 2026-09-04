@@ -14,8 +14,11 @@ export class Controller {
         this._hidden = false;
         this._strictDeployment = this._readStrictPolicy();
         this._original = new Map();
+        this._actorSignals = new Map();
         this._signals = [];
+        this._idleIds = new Set();
         this._retryId = 0;
+        this._enabled = false;
     }
 
     _readStrictPolicy() {
@@ -37,15 +40,19 @@ export class Controller {
     }
 
     enable() {
+        this._enabled = true;
         this._indicator = new Indicator(this._extensionPath);
         Main.panel.addToStatusArea('spakoi', this._indicator);
         this._connectClient();
         this._signals.push([Main.sessionMode, Main.sessionMode.connect('updated', () => this._apply())]);
         this._signals.push([Main.screenShield, Main.screenShield.connect('active-changed', () => {
-            GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-                this._apply();
+            const id = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                this._idleIds.delete(id);
+                if (this._enabled)
+                    this._apply();
                 return GLib.SOURCE_REMOVE;
             });
+            this._idleIds.add(id);
         })]);
     }
 
@@ -82,13 +89,20 @@ export class Controller {
 
     _apply() {
         for (const actor of this._actors()) {
-            if (!this._original.has(actor))
+            if (!this._original.has(actor)) {
                 this._original.set(actor, actor.visible);
+                const id = actor.connect('destroy', destroyed => {
+                    this._original.delete(destroyed);
+                    this._actorSignals.delete(destroyed);
+                });
+                this._actorSignals.set(actor, id);
+            }
             actor.visible = this._hidden ? false : this._original.get(actor);
         }
     }
 
     disable() {
+        this._enabled = false;
         this._indicator?.destroy();
         this._indicator = null;
         this._client?.destroy();
@@ -96,6 +110,9 @@ export class Controller {
         if (this._retryId)
             GLib.source_remove(this._retryId);
         this._retryId = 0;
+        for (const id of this._idleIds)
+            GLib.source_remove(id);
+        this._idleIds.clear();
         for (const [object, id] of this._signals)
             object.disconnect(id);
         this._signals = [];
@@ -103,6 +120,11 @@ export class Controller {
             if (!actor.is_destroyed?.())
                 actor.visible = visible;
         }
+        for (const [actor, id] of this._actorSignals) {
+            if (!actor.is_destroyed?.())
+                actor.disconnect(id);
+        }
+        this._actorSignals.clear();
         this._original.clear();
     }
 }
