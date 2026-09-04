@@ -1,0 +1,9 @@
+{
+  "uuid": "spakoi@victoriaappdeveloper.github.io",
+  "name": "Spakoi",
+  "description": "Hides wall-clock time on GNOME Shell surfaces",
+  "shell-version": ["43", "49", "50"],
+  "session-modes": ["user", "unlock-dialog", "gdm"],
+  "url": "https://github.com/VictoriaAppDeveloper/spakoi",
+  "version": 2
+}

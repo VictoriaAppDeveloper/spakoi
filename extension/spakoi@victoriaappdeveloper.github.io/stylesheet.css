@@ -1,0 +1,5 @@
+/* Actors are hidden directly so no invisible clickable area remains. */
+
+.spakoi-panel-icon {
+    icon-size: 20px;
+}

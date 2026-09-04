@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=67"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spakoi"
+version = "0.2.0"
+description = "Hide wall-clock time on GNOME Shell surfaces"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "GPL-3.0-or-later"}
+keywords = ["gnome", "clock", "digital-wellbeing", "mindfulness", "focus"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: X11 Applications :: Gnome",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+]
+
+[project.urls]
+Homepage = "https://github.com/VictoriaAppDeveloper/spakoi"
+Repository = "https://github.com/VictoriaAppDeveloper/spakoi.git"
+Issues = "https://github.com/VictoriaAppDeveloper/spakoi/issues"
+Changelog = "https://github.com/VictoriaAppDeveloper/spakoi/blob/main/CHANGELOG.md"
+
+[project.scripts]
+spakoi = "spakoi.cli:main"
+spakoi-daemon = "spakoi.daemon:main"
+spakoi-gui = "spakoi.gui:main"
+
+[tool.setuptools]
+packages = ["spakoi"]

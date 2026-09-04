@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.spakoi.Spakoi
+Exec=/usr/bin/systemctl --user start spakoi.service
+SystemdService=spakoi.service

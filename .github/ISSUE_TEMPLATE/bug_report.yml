@@ -1,0 +1,51 @@
+name: Bug report
+description: Report something that is not working as expected
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Spakoi
+        2. Add an interval
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Spakoi version
+      placeholder: v0.2.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Linux distribution and GNOME Shell version
+      placeholder: Ubuntu 22.04, GNOME Shell 43.9, X11
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Paste the output of `spakoi doctor` and relevant service logs.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: I removed private information from the logs.
+          required: true

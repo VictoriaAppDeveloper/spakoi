@@ -1,0 +1,20 @@
+[Unit]
+Description=Spakoi state service
+
+[Service]
+Type=dbus
+BusName=org.spakoi.Spakoi
+ExecStart=/usr/bin/spakoi-daemon
+Restart=on-failure
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectControlGroups=true
+ProtectKernelTunables=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictRealtime=true
+
+[Install]
+WantedBy=default.target

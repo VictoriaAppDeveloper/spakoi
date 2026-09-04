@@ -1,0 +1,11 @@
+[general]
+enabled = true
+locked = false
+mode = "normal"
+
+[[rules]]
+id = "work-hours"
+enabled = true
+days = ["mon", "tue", "wed", "thu", "fri"]
+from = "09:00"
+to = "17:00"
