@@ -62,6 +62,21 @@ Open **Spakoi** from the applications menu or run:
 spakoi-gui
 ```
 
+<p align="center">
+  <img src="screens/spakoi-schedule.png" width="620" alt="Spakoi schedule with an active interval">
+</p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="screens/spakoi-interval-editor.png" alt="Spakoi interval editor"></td>
+    <td width="50%"><img src="screens/spakoi-empty-schedule.png" alt="Spakoi empty schedule"></td>
+  </tr>
+  <tr>
+    <td align="center">Interval editor</td>
+    <td align="center">Empty schedule</td>
+  </tr>
+</table>
+
 Create an interval by choosing its days and start/end times, then use Play or
 Stop to enable or pause it without deleting it. The protection switch prevents
 an active interval from being edited or stopped until its hidden-time period
